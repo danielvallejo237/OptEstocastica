@@ -13,6 +13,7 @@ Códigos de la tarea 1 de optimización estocástica
 #include <algorithm>
 #include <chrono>
 #include <random>
+#include <omp.h>
 #define INF 0x3f3f3f3f
 
 using namespace std;
@@ -149,6 +150,7 @@ int main(int argc,char* argv[])
   SolutionGenerator Gen(G.pVal(),G.nNodes(),seed);
   int min=INF;
   int aux;
+#pragma omp parallel for
   for(int i=0;i<100000;i++)
   {
     aux=Gen.GenerateAndEvaluate(G.MC);
