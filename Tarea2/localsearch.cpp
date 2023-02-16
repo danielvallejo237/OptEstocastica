@@ -136,6 +136,71 @@ void ShowUheap(Uheap pq)
   cout<<endl;
 }
 
+class descriptor
+{
+public:
+  int u; // u corresponde al índice en el vector de elementos que vamos a cambiar
+  int nou; //nou corresponde al índice del vector de elementos no utilizados que vamos a cambiar
+  //La idea es que para generar vecinos vamos a crear un inercambio de la solución actual con algun otro nodo
+  descriptor(int u, int nou)
+  {
+    this->u=u;
+    this->nou=nou;
+  }
+  descriptor(){}
+  descriptor create(int u, int nou)
+  {
+    return descriptor(u,nou);
+  }
+};
+
+
+class Solution
+{
+public:
+  int nodes;
+  int p;
+  vector<int> used;
+  vector<int> notused;
+  Solution(const int &nodes, const int& p, unsigned int seed)
+  {
+    this->p=p;
+    this->nodes=nodes;
+    this->used.resize(p);
+    this->notused.resize(nodes-p);
+    vector<int> numbers(nodes);
+    for(int i=1;i<=nodes;i++) numbers[i-1]=i;
+    std::shuffle(numbers.begin(), numbers.end(), std::default_random_engine(seed));
+    for(int i=0;i<p;i++) used[i]=numbers[i]; //Nos aseguramos que no haya nodos repetidos
+    for (int j=p;j<nodes;j++) notused[j-p]=numbers[j];
+  }
+  void print()
+  {
+    for(vector<int>::iterator it=used.begin();it!=used.end();++it) cout<<*it<<" ";
+      cout<<endl;
+  }
+  Solution(Graph G)
+  {
+    //Iniciamos una solución mediante una heurística de construcción para esto necesitamos la matriz de costo
+    /*Calculamos la solucion inicial como los p nodos cuya distancia promedio al resto es menor que los demás
+    en este caso solo debemos de ordenar dichas distancias */
+    this->p=G.pVal();
+    this->nodes=G.nNodes();
+    this->used.resize(this->p);
+    this->notused.resize(this->nodes-this->p);
+    //Sumamos por filas la matriz de adyacencia de tal forma que obtengamos el promedio de un nodo a otro
+    vector<iPair> additions(this->nodes,make_pair(0,0));
+    for(int i=0;i<this->nodes;i++)
+    {
+      additions[i].second=i+1;
+      for(int j=0;j<this->nodes;j++) additions[i].first+=G.MC[i][j];
+    }
+    sort(additions.begin(),additions.end(),greater<iPair>());
+    reverse(additions.begin(),additions.end());
+    for(int i=0;i<this->p;i++) this->used[i]=additions[i].second;
+    for(int i=0;i<this->nodes-this->p;i++) this->notused[i]=additions[this->p+i].second;
+  }
+};
 /*En este caso tenemos un contenedor el cual está conformado por un vector de heaps actualizables donde 
 cada uno de ellos */
 class Container
@@ -161,14 +226,14 @@ public:
     this->borra(idx);
     for(int i=0;i<n;i++)
     {
-      vheap[i].push(make_pair(G.CostSD(i+1,ns+1),ns));
+      vheap[i].push(make_pair(G.CostSD(i+1,ns),ns));
     }
   }
   void insertOnly(const int &ns, Graph G)
   {
     for(int i=0;i<n;i++)
     {
-      vheap[i].push(make_pair(G.CostSD(i+1,ns+1),ns));
+      vheap[i].push(make_pair(G.CostSD(i+1,ns),ns));
     }
   }
   void show()
@@ -178,70 +243,75 @@ public:
   int GetLoss()
   {
     int loss=0;
-    for (int i=0;i<n;i++) loss+=vheap[i].top().first;
+    for(vector<Uheap>::iterator it=this->vheap.begin();it!=this->vheap.end();++it) loss+=(*it).top().first;
     return loss;
   }
   Container(Solution s, Graph G)
   {
     //Creamos un contenedor principal a partir de una solución
-    this->n=s.nNodes();
-    vheap.resize(nodes);
-    cout<<"Tamano del contenedor: "<<vheap.size()<<endl;
+    this->n=G.nNodes();
+    vheap.resize(G.nNodes());
     for(int i=0;i<s.p;i++)
     {
-      this->insertOnly(s.used[i]);
+      this->insertOnly(s.used[i],G);
     }
   }
 };
 
-
-typedef struct descriptor
-{
-  int u; // u corresponde al índice en el vector de elementos que vamos a cambiar
-  int nou; //nou corresponde al índice del vector de elementos no utilizados que vamos a cambiar
-  //La idea es que para generar vecinos vamos a crear un inercambio de la solución actual con algun otro nodo
-};
-
-
-class Solution
-{
-public:
-  int nodes;
-  int p;
-  vector<int> used;
-  vector<int> notused;
-  Solution(const int &nodes, const int& p, unsigned int seed)
-  {
-    this->p=p;
-    this->nodes=nodes;
-    this->used.resize(p);
-    this->notused.resize(nodes-p);
-    vector<int> numbers(nodes);
-    for(int i=1;i<=nodes;i++) numbers[i-1]=i;
-    std::shuffle(numbers.begin(), numbers.end(), std::default_random_engine(seed));
-    for(int i=0;i<p;i++) used[i]=numbers[i]; //Nos aseguramos que no haya nodos repetidos
-    for (int j=p;j<nodes;j++) notused[j-p]=numbers[j];
-  }
-  bool findBetterSolution()
+ bool findBetterSolution(Solution &s,Container &C,Graph G,unsigned int seed)
   {
     //Primero generamos los vecinos que corresponde a una lista de descriptores
-    
+    vector<descriptor> dv(s.nodes-s.p);
+    int index=rand() % s.p; //Algún número vamos a cambiar de la solución
+    int counter=0;
+    descriptor ds;
+    bool flag=false; //Hasta que no encontremos una mejor solución continuaremos buscando nuevas soluciones
+    for(vector<int>::iterator it=s.notused.begin();it!=s.notused.end();++it)
+    {
+      dv[counter]=ds.create(index,counter);
+      counter++;
+    }
+    int current_cost=C.GetLoss();
+    int aux_cost;
+    shuffle(dv.begin(),dv.end(),default_random_engine(seed)); //Se supone que con eso estamos quitando los vectores de forma aleatorio
+    for(vector<descriptor>::iterator it=dv.begin();it!=dv.end();++it)
+      {
+        C.removeAndInsert(s.used[(*it).u],s.notused[(*it).nou],G);
+        aux_cost=C.GetLoss();
+        if (aux_cost<current_cost)
+        {
+          int tmp=s.used[(*it).u];
+          s.used[(*it).u]=s.notused[(*it).nou];
+          s.notused[(*it).nou]=tmp;
+          flag=true;
+          break;
+        }
+        C.removeAndInsert(s.notused[(*it).nou],s.used[(*it).u],G);
+      }
+    return flag;
   }
 
-
+void findLocalOptimum(Solution &s,Container &C,Graph G,unsigned int seed)
+{
+  bool flag=true;
+  while(flag){ flag=findBetterSolution(s,C,G,seed);}
+  //cout<<C.GetLoss()<<endl;
 }
-
 
 int main(int argc, char* argv[])
 {
   Graph G(argv[1]);
-  cout<<"Creando grafo"<<endl;
-  Container C(G.nNodes());
-  C.insertOnly(10,G);
-  C.insertOnly(20,G);
-  C.show();
-  cout<<C.GetLoss()<<endl;
-  C.borra(10);
-  C.show();
+  Solution sol(G.nNodes(),G.pVal(),atoi(argv[2]));
+  Container C(sol,G);
+  auto start = chrono::steady_clock::now();
+  findLocalOptimum(sol,C,G,atoi(argv[2]));
+ auto end = chrono::steady_clock::now();
+  Solution sc(G);
+  Container C2(sc,G);
+    auto start1 = chrono::steady_clock::now();
+  findLocalOptimum(sc,C2,G,atoi(argv[2]));
+    auto end1 = chrono::steady_clock::now();
+  //cout<<C.GetLoss()<<" "<<C2.GetLoss()<<endl;
+    cout<<chrono::duration<double>(end - start).count()<<" "<<chrono::duration<double>(end1 - start1).count()<<endl;
   return 0;
 }
