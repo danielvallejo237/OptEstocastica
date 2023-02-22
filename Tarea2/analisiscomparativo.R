@@ -13,6 +13,7 @@ summary(df1)
 local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/times_small.txt")))
 colnames(local1)<-c("Random","Constructiva")
 boxplot(local1,col='blue')
+summary(local1)
 ####################
 
 instancia1<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea1/results_medium.txt",header = FALSE,sep = '\n')
@@ -23,7 +24,7 @@ colnames(df1)<-c("Random","Random/LocalSearch","Constructive/LocalSearch")
 boxplot(df1)
 summary(df1)
 
-local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/times_medium.txt")))
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/times_large.txt")))
 colnames(local1)<-c("Random","Constructiva")
 boxplot(local1,col='blue')
 #####################
