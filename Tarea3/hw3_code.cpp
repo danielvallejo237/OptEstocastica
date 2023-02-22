@@ -511,7 +511,11 @@ int main(int argc, char *argv[])
     Solution sol(G.nodes,G.p,atoi(argv[2]));
     Container C(sol,G);
     OptimizationContainer oc(G.p,atoi(argv[2]));
+    auto start = chrono::steady_clock::now();
     FindOptimumDynamicProgramming(oc,sol,G,C,atoi(argv[2]));
-    cout<<C.GetLoss()<<endl;
+    auto end = chrono::steady_clock::now();
+    bool opt=(bool)atoi(argv[2]);
+    if (opt) cout<<C.GetLoss()<<endl;
+    else cout<<chrono::duration<double>(end - start).count()<<endl;
     return 0;
 }
