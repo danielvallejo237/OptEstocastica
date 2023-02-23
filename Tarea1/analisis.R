@@ -1,0 +1,11 @@
+
+
+pmed1<-read.delim("results.txt",sep='\n',header=FALSE)
+boxplot(pmed1,main='BoxPlot de las mejores soluciones encontradas para la instancia 1 \n n=100 p=5')
+summary(pmed1)
+pmed2<-read.delim("results_medium.txt",sep='\n',header=FALSE)
+boxplot(pmed2,main='BoxPlot de las mejores soluciones encontradas para la instancia 9 \n n=200 p=40')
+summary(pmed2)
+pmed3<-read.delim("results_large.txt",sep='\n',header=FALSE)
+boxplot(pmed3,main='BoxPlot de las mejores soluciones encontradas para la instancia 9 \n n=800 p=80')
+summary(pmed3)

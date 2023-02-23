@@ -1,0 +1,51 @@
+
+#Código de generación de boxplots con los datos obtenidos durante las corridas
+instancia1<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea1/results.txt",header = FALSE,sep = '\n')
+colnames(instancia1)<-c("V4")
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/salida_small.txt")))
+local2<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea3/salida_small_dp.txt",header = FALSE,sep = '\n')
+colnames(local2)<-c("V5")
+df1<-as.data.frame(c(instancia1,local1,local2))
+colnames(df1)<-c("Random","RandomLS","ConstLS","DP")
+boxplot(df1,col = c("gray","gray","gray","orange"),main="Comparativa de valor de solucion")
+summary(df1)
+
+
+times1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/times_small.txt")))
+times2<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea3/times_small_dp.txt",header = FALSE, sep = '\n')
+colnames(times1)<-c("RandomlS","ConstLS")
+colnames(times2)<-c("DP")
+times<-data.frame(c(times1,times2))
+boxplot(times,col=c("gray","gray","orange"),main="Comparativa en cuanto a tiempo de ejecucion")
+summary(times)
+####################
+
+instancia1<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea1/results_medium.txt",header = FALSE,sep = '\n')
+colnames(instancia1)<-c("V4")
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/salida_medium.txt")))
+local2<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea3/salida_medium_dp.txt",header = FALSE,sep = '\n')
+colnames(local2)<-c("V5")
+df1<-as.data.frame(c(instancia1,local1,local2))
+colnames(df1)<-c("Random","RandomLS","ConstLS","DP")
+boxplot(df1,col = c("gray","gray","gray","orange"),main="Comparativa de valor de solucion")
+summary(df1)
+
+times1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/times_medium.txt")))
+times2<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea3/times_medium_dp.txt",header = FALSE, sep = '\n')
+colnames(times1)<-c("RandomlS","ConstLS")
+colnames(times2)<-c("DP")
+times<-data.frame(c(times1,times2))
+boxplot(times,col=c("gray","gray","orange"),main="Comparativa en cuanto a tiempo de ejecucion")
+summary(times)
+
+#####################
+instancia1<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea1/results_large.txt",header = FALSE,sep = '\n')
+colnames(instancia1)<-c("V4")
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/salida_large.txt")))
+local2<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea3/salida_large_dp.txt",header = FALSE,sep = '\n')
+colnames(local2)<-c("V5")
+df1<-as.data.frame(c(instancia1,local1,local2))
+colnames(df1)<-c("Random","RandomLS","ConstLS","DP")
+boxplot(df1,col = c("gray","gray","gray","orange"),main="Comparativa de valor de solucion")
+summary(df1)
+

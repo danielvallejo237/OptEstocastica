@@ -500,7 +500,7 @@ void FindOptimumDynamicProgramming(OptimizationContainer &O , Solution &s, Graph
     //Mientras tengamos parejas que optimizar  seguiremos el proceso
     /*cout<<" Optimizando parejas de nodos: "<<O.Order.front().first<<" "<<O.Order.front().second<<endl;
     cout<<" Costo hasta el momento: "<<C.GetLoss()<<endl;*/
-    cout<<"Pairs left: "<<O.Order.size()<<endl;
+    //cout<<"Pairs left: "<<O.Order.size()<<endl;
     FindPairedLocalOptimum(O.Order.front(),s,G,C,seed);
     O.Order.pop();
    }
@@ -512,11 +512,11 @@ int main(int argc, char *argv[])
     Solution sol(G.nodes,G.p,atoi(argv[2]));
     Container C(sol,G);
     OptimizationContainer oc(G.p,atoi(argv[2]));
-    cout<<"Beginning Optimization process"<<endl;
+    //cout<<"Beginning Optimization process"<<endl;
     auto start = chrono::steady_clock::now();
     FindOptimumDynamicProgramming(oc,sol,G,C,atoi(argv[2]));
     auto end = chrono::steady_clock::now();
-    bool opt=(bool)atoi(argv[2]);
+    bool opt=(bool)atoi(argv[3]);
     if (opt) cout<<C.GetLoss()<<endl;
     else cout<<chrono::duration<double>(end - start).count()<<endl;
     return 0;
