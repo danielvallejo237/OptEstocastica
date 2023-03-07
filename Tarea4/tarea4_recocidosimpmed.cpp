@@ -514,14 +514,24 @@ void FindOptimumDynamicProgramming(OptimizationContainer &O , Solution &s, Graph
                 CÓDIGO DE LA TAREA 4, RECOCIDO SIMULADO
 */
 
-void SimulatedAnnealing(Solution sol, double temperature, double, int RepCounter, Container C, Graph G)
+
+descriptor gen_random_descriptor(const int &n,const int &p)
+{
+    int inp=random() % p;
+    int pos=random() % (n-p);
+    descriptor des(inp,pos);
+    return des;
+}
+void SimulatedAnnealing(Solution &sol, float temperature,int RepCounter, Container &C, Graph G,float delayInSeconds, float decreaseRate)
 {
     /*
     Describiremos paso por paso el algoritmo de recocido simulado para la tarea de las p medianas
     temperature-> Tempreatura inicial del algoritmo de recocido simulado
     Repcounter -> Cuántas veces seleccionaremos vecinos de forma aleatoria para evaluar la función de costo
-    
+    seed -> la semilla con la cual será inicializada la generación de números aleatorios 
     Pasos 1 al 3: Seleccionar una solución y una temperatura inicial y definir el cambio de la temperatura a 0
+    delayInSeconds -> Tiempo el cual será ejecutado el algoritmo de recocido simulado en este caso corresponde a 1200 segs
+    decreaseRate -> Tasa de decaimiento de la temperatura 
     */
    int tChange=0;
    //Se dice que el algoritmo deberá de ser corrido por 20 minutos
@@ -530,30 +540,61 @@ void SimulatedAnnealing(Solution sol, double temperature, double, int RepCounter
    float elapsedTime;
    float setTime = delayInSeconds;
    time(&startTime);
+   srand(time(NULL)); //Inicialización de forma aleatoria conforme al tiempo máquina 
+   descriptor auxdes;
+   float indicator;
+   int aux_cost,delta;
+   int current_cost=C.GetLoss(); //Sacamos el costo actual de la función de pérdida
    while (elapsedTime < setTime) 
    {
 
-        for(int i=0;i<RepCounter;i++);
+        for(int i=0;i<RepCounter;i++)
+        {
+            //De acuerdo al algoritmo de recocido simulado debemos de generar una solución aleatoria del vecindario que vamos a considerar
+            auxdes=gen_random_descriptor(sol.nodes,sol.p);
+            C.RemoveAndInsert(sol.used[auxdes.u],sol.notused[auxdes.nou],G);
+            aux_cost=C.GetLoss();
+            delta=aux_cost-current_cost;
+            if(delta < 0)
+            {
+                //Rompemos el ciclo y nos pasamos a la nueva solución donde generaremos un nuevo vecindario
+                int tmp=sol.used[auxdes.u];
+                sol.used[auxdes.u]=sol.notused[auxdes.nou];
+                sol.notused[auxdes.nou]=tmp;
+                current_cost=aux_cost;
+                break;
+            }
+            else if(delta >= 0 && temperature >0)
+            {
+                indicator= (float) rand() / RAND_MAX; //Generamos un aleatorio entre 0 y 1
+                if(indicator < max((float)0.0,exp(-delta/temperature))) 
+                {
+                    int tmp=sol.used[auxdes.u];
+                    sol.used[auxdes.u]=sol.notused[auxdes.nou];
+                    sol.notused[auxdes.nou]=tmp;
+                    current_cost=aux_cost;
+                    break;
+                } 
+            }
+            C.RemoveAndInsert(sol.notused[auxdes.nou],sol.used[auxdes.u],G);
+        }
         //Incrememntar el tamaño de los cambios
         tChange=tChange+1;
+        temperature=max((float)0.0,decreaseRate-((decreaseRate*tChange)/RepCounter));
         now = time(NULL);
         elapsedTime = difftime(now, startTime);
     }
 
 }
 
+
 int main(int argc, char *argv[])
 {
     Graph G(argv[1]);
     Solution sol(G.nodes,G.p,atoi(argv[2]));
     Container C(sol,G);
-    OptimizationContainer oc(G.p,atoi(argv[2]));
-    //cout<<"Beginning Optimization process"<<endl;
-    auto start = chrono::steady_clock::now();
-    FindOptimumDynamicProgramming(oc,sol,G,C,atoi(argv[2]));
-    auto end = chrono::steady_clock::now();
-    bool opt=(bool)atoi(argv[3]);
-    if (opt) cout<<C.GetLoss()<<endl;
-    else cout<<chrono::duration<double>(end - start).count()<<endl;
+    SimulatedAnnealing(sol,1.25,3000,C,G,1200,1.0);
+    Container D(sol,G);
+    cout<<D.GetLoss()<<endl;
     return 0;
 }
