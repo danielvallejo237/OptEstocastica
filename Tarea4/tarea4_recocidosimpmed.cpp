@@ -20,6 +20,7 @@ main()
 #include <random>
 #include <queue>
 #include <ctime>
+#include <unordered_set>
 
 #define INF 0x3f3f3f3f
 
@@ -182,6 +183,7 @@ class Solution
     Solution(const int &nodes, const int& p, unsigned int seed);
     Solution(Graph G);
     void print();
+    void reset();
 
 };
 
@@ -199,6 +201,15 @@ Solution::Solution(const int &nodes, const int &p, unsigned int seed)
     vector<int> numbers(nodes);
     for(int i=1;i<=nodes;i++) numbers[i-1]=i;
     std::shuffle(numbers.begin(), numbers.end(), std::default_random_engine(seed));
+    for(int i=0;i<p;i++) used[i]=numbers[i]; //Nos aseguramos que no haya nodos repetidos
+    for (int j=p;j<nodes;j++) notused[j-p]=numbers[j];
+}
+
+void Solution::reset()
+{
+    vector<int> numbers(nodes);
+    for(int i=1;i<=nodes;i++) numbers[i-1]=i;
+    shuffle(numbers.begin(),numbers.end(),default_random_engine(time(NULL)));
     for(int i=0;i<p;i++) used[i]=numbers[i]; //Nos aseguramos que no haya nodos repetidos
     for (int j=p;j<nodes;j++) notused[j-p]=numbers[j];
 }
@@ -239,6 +250,7 @@ class Container
     void RemoveAndInsert(const int &idx, const int &ns,Graph G);
     void InsertOnly(const int &ns, Graph G);
     void show();
+    void reset(Solution s, Graph G);
     void clear();
     int GetLoss();
 };
@@ -251,6 +263,15 @@ Container::Container(Solution s, Graph G)
 {
     this->n=G.nodes;
     vheap.resize(G.nodes);
+    for(int i=0;i<s.p;i++)
+    {
+      this->InsertOnly(s.used[i],G);
+    }
+}
+void Container::reset(Solution s, Graph G)
+{
+    this->clear();
+    this->vheap.resize(n);
     for(int i=0;i<s.p;i++)
     {
       this->InsertOnly(s.used[i],G);
@@ -362,6 +383,7 @@ class OptimizationContainer
     queue<iPair> Order; //Orden en que se optimizarán los p´s
     OptimizationContainer(int p, unsigned int seed);
     void show();
+    void reset();
 };
 
 OptimizationContainer::OptimizationContainer(int p, unsigned int seed)
@@ -374,6 +396,24 @@ OptimizationContainer::OptimizationContainer(int p, unsigned int seed)
         numbers[i]=i;
     }
     shuffle(numbers.begin(),numbers.end(),default_random_engine(seed)); //Hacemos un shuffle de los números en los cuales vamos a considerar el nuevo orden
+    for(int k=0;k<(int)ceil((double)numbers.size()/2.0);k++)
+    {
+        iPair a(-1,-1);
+        a.first=numbers[2*k];
+        if(2*k+1 < p) a.second=numbers[2*k+1];
+        Order.push(a);
+    }
+}
+
+void OptimizationContainer::reset()
+{
+    vector<int> numbers(p);
+    while(!Order.empty()) Order.pop(); //Quitamos todos los elementos presentes en la cola
+    for(int i=0;i<p;i++) 
+    {
+        numbers[i]=i;
+    }
+    shuffle(numbers.begin(),numbers.end(),default_random_engine(time(NULL))); //Hacemos un shuffle de los números en los cuales vamos a considerar el nuevo orden
     for(int k=0;k<(int)ceil((double)numbers.size()/2.0);k++)
     {
         iPair a(-1,-1);
@@ -537,7 +577,7 @@ void SimulatedAnnealing(Solution &sol, float temperature,int RepCounter, Contain
    //Se dice que el algoritmo deberá de ser corrido por 20 minutos
    time_t startTime;
    time_t now;
-   float elapsedTime;
+   float elapsedTime=0;
    float setTime = delayInSeconds;
    time(&startTime);
    srand(time(NULL)); //Inicialización de forma aleatoria conforme al tiempo máquina 
@@ -587,14 +627,242 @@ void SimulatedAnnealing(Solution &sol, float temperature,int RepCounter, Contain
 
 }
 
+int TimedDynamicProgrammingOptFinding(Graph G, unsigned int seed, float delayInSeconds)
+{
+    /*Creamos métodos reset del contenedor y de la solución de forma que no ocupemos más
+    memoria de la necesaria*/
+    time_t startTime;
+    time_t now;
+    float elapsedTime=0;
+    float setTime = delayInSeconds;
+    time(&startTime);
+    Solution sol(G.nodes,G.p,seed);
+    Container C(sol,G);
+    OptimizationContainer O(G.p,seed);
+    int min=INF;
+    int aux_cost;
+    while(elapsedTime < setTime)
+    {
+        FindOptimumDynamicProgramming(O,sol,G,C,seed);
+        aux_cost=C.GetLoss();
+        if(aux_cost<min) min=aux_cost;
+        sol.reset();
+        C.reset(sol,G);
+        O.reset();
+        now = time(NULL);
+        elapsedTime = difftime(now, startTime);
+    }
+    return min;
+}
+
+
+/*                PROPUESTA: VNS con Recocido simulado en donde el tamaño de la vecindad puede reducirse de dos formas
+
+                    1: Por mejora en la función de fitness
+                    2: Por un scheduler de decaimiento con una tasa multiplicativa
+*/
+
+vector<descriptor> genMultipleDescriptors(const int &n, const int &p, const int &num)
+{
+    vector<descriptor> descs(num);
+    unordered_set<int> fs;
+    unordered_set<int> fs2;
+    int counter=0;
+    descriptor ds;
+    while(fs.size()!=num)
+    {
+        fs.insert(random() % p);
+    }
+    while(fs2.size()!=num)
+    {
+        fs2.insert(random() % (n-p));
+    }
+    for(unordered_set<int>::iterator it=fs.begin(),it2=fs2.begin();it!=fs.end();++it,++it2)
+    {
+        descs[counter]=ds.create(*it,*it2);
+    }
+
+    return descs;
+}
+
+// Decaimiento del tamaño de la vecindad en caso de que una solución mejore
+
+void VNSSAonPlateu(Solution &sol, float temperature,int RepCounter, Container &C, Graph G,float delayInSeconds, float decreaseRate, int max_n_size)
+{
+    /*La primera forma que vamos a probar de decaimiento es en cuanto a mejora de la solución si la solución mejora, hacemos un decaímiento proporcional
+    a la mejora hasta quedarnos con una vecindad más pequeña y seguirle con el algoritmo de recocido simulado que ya conocíamos
+    
+    max_n_size -> Al algoritmo previamente definido le definimos el tamaño máximo de la vecindad que queremos considerar en este caso
+    se considera una vecindad de a lo más 3 nodos por cuestiones de poder computacional.
+    */
+    int tChange=0;
+   //Se dice que el algoritmo deberá de ser corrido por 20 minutos
+   time_t startTime;
+   time_t now;
+   float initial_rate=1.0;
+   float elapsedTime=0;
+   float setTime = delayInSeconds;
+   time(&startTime);
+   srand(time(NULL)); //Inicialización de forma aleatoria conforme al tiempo máquina 
+   descriptor auxdes;
+   float indicator;
+   int aux_cost,delta;
+   vector<descriptor> vedes;
+   int current_cost=C.GetLoss(); //Sacamos el costo actual de la función de pérdida
+   while (elapsedTime < setTime) 
+   {
+
+        for(int i=0;i<RepCounter;i++)
+        {
+            //De acuerdo al algoritmo de recocido simulado debemos de generar una solución aleatoria del vecindario que vamos a considerar
+            vedes=genMultipleDescriptors(sol.nodes,sol.p,1+(int)(initial_rate*(float)max_n_size));
+            for(int i=0;i<vedes.size();i++)
+            {
+                C.RemoveAndInsert(sol.used[vedes[i].u],sol.notused[vedes[i].nou],G);
+            }
+            aux_cost=C.GetLoss();
+            delta=aux_cost-current_cost;
+            if(delta < 0)
+            {
+                //Rompemos el ciclo y nos pasamos a la nueva solución donde generaremos un nuevo vecindario
+                int tmp;
+                for(int i=0;i<vedes.size();i++)
+                {
+                    tmp=sol.used[vedes[i].u];
+                    sol.used[vedes[i].u]=sol.notused[vedes[i].nou];
+                    sol.notused[vedes[i].nou]=tmp;
+                }
+                initial_rate=(fabs(delta)/current_cost);
+                current_cost=aux_cost;
+                break;
+            }
+            else if(delta >= 0 && temperature >0)
+            {
+                indicator= (float) rand() / RAND_MAX; //Generamos un aleatorio entre 0 y 1
+                if(indicator < max((float)0.0,exp(-delta/temperature))) 
+                {
+                    int tmp;
+                    for(int i=0;i<vedes.size();i++)
+                    {
+                        tmp=sol.used[vedes[i].u];
+                        sol.used[vedes[i].u]=sol.notused[vedes[i].nou];
+                        sol.notused[vedes[i].nou]=tmp;
+                    }
+                    current_cost=aux_cost;
+                    break;
+                } 
+            }
+            for(int i=0;i<vedes.size();i++) C.RemoveAndInsert(sol.notused[vedes[i].nou],sol.used[vedes[i].u],G);
+        }
+        //Incrememntar el tamaño de los cambios
+        tChange=tChange+1;
+        temperature=max((float)0.0,decreaseRate-((decreaseRate*tChange)/RepCounter));
+        now = time(NULL);
+        elapsedTime = difftime(now, startTime);
+    }
+
+}
+
+
+//Mejora del algoritmo con un tamaño de paso predeterminado
+
+void VNSSAMultiplicativeReduction(Solution &sol, float temperature,int RepCounter, Container &C, Graph G,float delayInSeconds, float decreaseRate, int max_n_size)
+{
+    /*La primera forma que vamos a probar de decaimiento es en cuanto a mejora de la solución si la solución mejora, hacemos un decaímiento proporcional
+    a la mejora hasta quedarnos con una vecindad más pequeña y seguirle con el algoritmo de recocido simulado que ya conocíamos
+    
+    max_n_size -> Al algoritmo previamente definido le definimos el tamaño máximo de la vecindad que queremos considerar en este caso
+    se considera una vecindad de a lo más 3 nodos por cuestiones de poder computacional.
+    */
+    int tChange=0;
+   //Se dice que el algoritmo deberá de ser corrido por 20 minutos
+   time_t startTime;
+   time_t now;
+   float initial_rate=1.0;
+   float lr=0.01;
+   float elapsedTime=0;
+   float setTime = delayInSeconds;
+   time(&startTime);
+   srand(time(NULL)); //Inicialización de forma aleatoria conforme al tiempo máquina 
+   descriptor auxdes;
+   float indicator;
+   int aux_cost,delta;
+   vector<descriptor> vedes;
+   int current_cost=C.GetLoss(); //Sacamos el costo actual de la función de pérdida
+   while (elapsedTime < setTime) 
+   {
+
+        for(int i=0;i<RepCounter;i++)
+        {
+            //De acuerdo al algoritmo de recocido simulado debemos de generar una solución aleatoria del vecindario que vamos a considerar
+            vedes=genMultipleDescriptors(sol.nodes,sol.p,1+(int)(initial_rate*(float)max_n_size));
+            for(int i=0;i<vedes.size();i++)
+            {
+                C.RemoveAndInsert(sol.used[vedes[i].u],sol.notused[vedes[i].nou],G);
+            }
+            aux_cost=C.GetLoss();
+            delta=aux_cost-current_cost;
+            if(delta < 0)
+            {
+                //Rompemos el ciclo y nos pasamos a la nueva solución donde generaremos un nuevo vecindario
+                int tmp;
+                for(int i=0;i<vedes.size();i++)
+                {
+                    tmp=sol.used[vedes[i].u];
+                    sol.used[vedes[i].u]=sol.notused[vedes[i].nou];
+                    sol.notused[vedes[i].nou]=tmp;
+                }
+                current_cost=aux_cost;
+                break;
+            }
+            else if(delta >= 0 && temperature >0)
+            {
+                indicator= (float) rand() / RAND_MAX; //Generamos un aleatorio entre 0 y 1
+                if(indicator < max((float)0.0,exp(-delta/temperature))) 
+                {
+                    int tmp;
+                    for(int i=0;i<vedes.size();i++)
+                    {
+                        tmp=sol.used[vedes[i].u];
+                        sol.used[vedes[i].u]=sol.notused[vedes[i].nou];
+                        sol.notused[vedes[i].nou]=tmp;
+                    }
+                    current_cost=aux_cost;
+                    break;
+                } 
+            }
+            for(int i=0;i<vedes.size();i++) C.RemoveAndInsert(sol.notused[vedes[i].nou],sol.used[vedes[i].u],G);
+        }
+        //Incrememntar el tamaño de los cambios
+        tChange=tChange+1;
+        temperature=max((float)0.0,decreaseRate-((decreaseRate*tChange)/RepCounter));
+        initial_rate=max((float)0.0,initial_rate-lr);
+        now = time(NULL);
+        elapsedTime = difftime(now, startTime);
+    }
+
+}
 
 int main(int argc, char *argv[])
 {
+    vector<int> costs(4);
     Graph G(argv[1]);
     Solution sol(G.nodes,G.p,atoi(argv[2]));
     Container C(sol,G);
     SimulatedAnnealing(sol,1.25,3000,C,G,1200,1.0);
-    Container D(sol,G);
-    cout<<D.GetLoss()<<endl;
+    costs[0]=C.GetLoss();
+    sol.reset();
+    C.reset(sol,G);
+    VNSSAMultiplicativeReduction(sol,1.25,3000,C,G,1200,1.0,3);
+    costs[1]=C.GetLoss();
+    sol.reset();
+    C.reset(sol,G);
+    VNSSAonPlateu(sol,1.25,3000,C,G,1200,1.0,3);
+    costs[2]=C.GetLoss();
+    sol.reset();
+    C.reset(sol,G);
+    int c=TimedDynamicProgrammingOptFinding(G,atoi(argv[2]),1200);
+    costs[3]=c;
+    cout<<costs[0]<<" "<<costs[1]<<" "<<costs[2]<<" "<<costs[3]<<endl;
     return 0;
 }
