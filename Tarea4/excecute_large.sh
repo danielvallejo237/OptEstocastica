@@ -10,7 +10,7 @@ cust_func()
 
 g++ tarea4_recocidosimpmed.cpp -std=c++11
 
-for i in {1..50}
+for i in {1..10} 	
 do
     cust_func $file &
 done

@@ -148,8 +148,7 @@ void Uheap::screenShow()
 
 void Uheap::clear()
 {
-    this->c.clear(); //Borramos todos los elemntos dentro del contenedor y lo comprimimos por espacio
-    this->c.shrink_to_fit(); 
+    while(!this->empty()) this->pop();
 }
 
 class descriptor
@@ -271,7 +270,6 @@ Container::Container(Solution s, Graph G)
 void Container::reset(Solution s, Graph G)
 {
     this->clear();
-    this->vheap.resize(n);
     for(int i=0;i<s.p;i++)
     {
       this->InsertOnly(s.used[i],G);
@@ -680,6 +678,7 @@ vector<descriptor> genMultipleDescriptors(const int &n, const int &p, const int 
     for(unordered_set<int>::iterator it=fs.begin(),it2=fs2.begin();it!=fs.end();++it,++it2)
     {
         descs[counter]=ds.create(*it,*it2);
+        counter++;
     }
 
     return descs;
@@ -845,23 +844,21 @@ void VNSSAMultiplicativeReduction(Solution &sol, float temperature,int RepCounte
 
 int main(int argc, char *argv[])
 {
-    vector<int> costs(4);
+    vector<int> costs(4,0);
     Graph G(argv[1]);
     Solution sol(G.nodes,G.p,atoi(argv[2]));
     Container C(sol,G);
-    SimulatedAnnealing(sol,1.25,3000,C,G,1200,1.0);
+    SimulatedAnnealing(sol,1.25,3000,C,G,10,1.0);
     costs[0]=C.GetLoss();
     sol.reset();
     C.reset(sol,G);
-    VNSSAMultiplicativeReduction(sol,1.25,3000,C,G,1200,1.0,3);
+    VNSSAMultiplicativeReduction(sol,1.25,3000,C,G,10,1.0,3);
     costs[1]=C.GetLoss();
     sol.reset();
     C.reset(sol,G);
-    VNSSAonPlateu(sol,1.25,3000,C,G,1200,1.0,3);
+    VNSSAonPlateu(sol,1.25,3000,C,G,10,1.0,3);
     costs[2]=C.GetLoss();
-    sol.reset();
-    C.reset(sol,G);
-    int c=TimedDynamicProgrammingOptFinding(G,atoi(argv[2]),1200);
+    int c=TimedDynamicProgrammingOptFinding(G,atoi(argv[2]),10);
     costs[3]=c;
     cout<<costs[0]<<" "<<costs[1]<<" "<<costs[2]<<" "<<costs[3]<<endl;
     return 0;
