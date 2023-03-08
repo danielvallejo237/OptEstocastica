@@ -182,7 +182,7 @@ class Solution
     Solution(const int &nodes, const int& p, unsigned int seed);
     Solution(Graph G);
     void print();
-    void reset();
+    void reset(unsigned int seed);
 
 };
 
@@ -204,11 +204,11 @@ Solution::Solution(const int &nodes, const int &p, unsigned int seed)
     for (int j=p;j<nodes;j++) notused[j-p]=numbers[j];
 }
 
-void Solution::reset()
+void Solution::reset(unsigned int seed)
 {
     vector<int> numbers(nodes);
     for(int i=1;i<=nodes;i++) numbers[i-1]=i;
-    shuffle(numbers.begin(),numbers.end(),default_random_engine(time(NULL)));
+    shuffle(numbers.begin(),numbers.end(),default_random_engine(seed));
     for(int i=0;i<p;i++) used[i]=numbers[i]; //Nos aseguramos que no haya nodos repetidos
     for (int j=p;j<nodes;j++) notused[j-p]=numbers[j];
 }
@@ -381,7 +381,7 @@ class OptimizationContainer
     queue<iPair> Order; //Orden en que se optimizarán los p´s
     OptimizationContainer(int p, unsigned int seed);
     void show();
-    void reset();
+    void reset(unsigned int seed);
 };
 
 OptimizationContainer::OptimizationContainer(int p, unsigned int seed)
@@ -403,7 +403,7 @@ OptimizationContainer::OptimizationContainer(int p, unsigned int seed)
     }
 }
 
-void OptimizationContainer::reset()
+void OptimizationContainer::reset(unsigned int seed)
 {
     vector<int> numbers(p);
     while(!Order.empty()) Order.pop(); //Quitamos todos los elementos presentes en la cola
@@ -411,7 +411,7 @@ void OptimizationContainer::reset()
     {
         numbers[i]=i;
     }
-    shuffle(numbers.begin(),numbers.end(),default_random_engine(time(NULL))); //Hacemos un shuffle de los números en los cuales vamos a considerar el nuevo orden
+    shuffle(numbers.begin(),numbers.end(),default_random_engine(seed)); //Hacemos un shuffle de los números en los cuales vamos a considerar el nuevo orden
     for(int k=0;k<(int)ceil((double)numbers.size()/2.0);k++)
     {
         iPair a(-1,-1);
@@ -644,9 +644,9 @@ int TimedDynamicProgrammingOptFinding(Graph G, unsigned int seed, float delayInS
         FindOptimumDynamicProgramming(O,sol,G,C,seed);
         aux_cost=C.GetLoss();
         if(aux_cost<min) min=aux_cost;
-        sol.reset();
+        sol.reset(seed);
         C.reset(sol,G);
-        O.reset();
+        O.reset(seed);
         now = time(NULL);
         elapsedTime = difftime(now, startTime);
     }
@@ -848,17 +848,17 @@ int main(int argc, char *argv[])
     Graph G(argv[1]);
     Solution sol(G.nodes,G.p,atoi(argv[2]));
     Container C(sol,G);
-    SimulatedAnnealing(sol,1.25,3000,C,G,10,1.0);
+    SimulatedAnnealing(sol,1.25,3000,C,G,1200,1.0);
     costs[0]=C.GetLoss();
-    sol.reset();
+    sol.reset(atoi(argv[2]));
     C.reset(sol,G);
-    VNSSAMultiplicativeReduction(sol,1.25,3000,C,G,10,1.0,3);
+    VNSSAMultiplicativeReduction(sol,1.25,3000,C,G,1200,1.0,3);
     costs[1]=C.GetLoss();
-    sol.reset();
+    sol.reset(atoi(argv[2]));
     C.reset(sol,G);
-    VNSSAonPlateu(sol,1.25,3000,C,G,10,1.0,3);
+    VNSSAonPlateu(sol,1.25,3000,C,G,1200,1.0,3);
     costs[2]=C.GetLoss();
-    int c=TimedDynamicProgrammingOptFinding(G,atoi(argv[2]),10);
+    int c=TimedDynamicProgrammingOptFinding(G,atoi(argv[2]),1200);
     costs[3]=c;
     cout<<costs[0]<<" "<<costs[1]<<" "<<costs[2]<<" "<<costs[3]<<endl;
     return 0;
