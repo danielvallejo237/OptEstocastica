@@ -1,0 +1,33 @@
+# ANÁLISIS DE RESULTADOS DEL MÉTODO DE RECOCIDO SIMULADO ADAPTADO AL
+#    PROBLEMA DE LAS P MEDIANAS
+#    Daniel Vallejo Aldana / CIMAT / 2023
+
+#Instancia 1
+
+instancia1<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea1/results.txt",header = FALSE,sep = '\n')
+colnames(instancia1)<-c("Random")
+inst1ls<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/salida_small.txt")))
+colnames(inst1ls)<-c("lsRand","lsConst")
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea4/salida_pmed1.txt")))
+colnames(local1)<-c("SA","SAVNSL", "SAVNSI","DP")
+df<-data.frame(c(instancia1,inst1ls,local1))
+boxplot(df,main="Comparativa de los métodos implementados \n para la instancia 1")
+boxplot(local1,col = c('red','magenta','blue','orange'),main='Boxplot para la instancia 1')
+summary(local1)
+#Instancia 2
+instancia1<-read.delim("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea1/results_medium.txt",header = FALSE,sep = '\n')
+colnames(instancia1)<-c("Random")
+inst1ls<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea2/salida_medium.txt")))
+colnames(inst1ls)<-c("lsRand","lsConst")
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea4/salida_pmed9.txt")))
+colnames(local1)<-c("SA","SAVNSL", "SAVNSI","DP")
+df<-data.frame(c(instancia1,inst1ls,local1))
+boxplot(df,main="Comparativa de los métodos implementados \n para la instancia 2")
+colnames(local1)<-c("SA","SA + VNSL", "SA+VNSI","DP")
+boxplot(local1,col = c('red','magenta','blue','orange'),main='Boxplot para la instancia 2')
+summary(local1)
+#Instancia 3
+local1<-read.table(text = gsub(" ", "\t", readLines("/Users/danielvallejo/Documents/MaestriaCC2224/Semestre2/OptEst1/OptEstocastica/Tarea4/salida_pmed15.txt")))
+colnames(local1)<-c("SA","SA + VNSL", "SA+VNSI","DP")
+boxplot(local1,col = c('red','magenta','blue','orange'),main='Boxplot para la instancia 3')
+summary(local1)
