@@ -1,0 +1,11 @@
+* En Problem.h incluir la estructura de datos que se necesite para almacenar información de la instancia. 
+* En Problem.cpp, completar el constructor para cargar la instancia. Se pasa como argumento el nombre del fichero de donde debes cargar.
+* En Individual.h definir el tipo TFitness, y el tipo TDistance, e incluir estructuras para definir la codificación. 
+* En Individual.cpp, reservar la memoria para la codificación  y si es un problema de minimización en getCost() poner return -cost, y si es de maximización poner return cost.
+* En crossover.cpp definir el operador de cruce. Se debe cruzar el individuo this con el individuo que se pasa por parámetro y se actualiza sobre los 2 individuos.
+* En evaluate.cpp realizar la evaluación del individuo. En el mismo tienes acceso al miembro problem, a partir del cual puedes obtener cualquier información de la instancia.
+* getDistance.cpp: calcular distancia entre individuo this e individuo ind.
+* initialize_heuristic.cpp: se usa para incializar a los individuos de la población inicial. 
+* intensify.cpp: aquí va la búsqueda local o cualquier otro mecanismo que se esté usando para intensificar. En nuestro caso la búsqueda local
+* mutation.cpp: mutar al individuo.
+* print.cpp: se debe imprimir la solución en el fichero cuyo nombre se pasa por parámetro.
