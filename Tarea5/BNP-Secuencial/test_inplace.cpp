@@ -24,9 +24,10 @@
 int main(int argc, char* argv[])
 {
     Problem p(argv[1]);
-    Individual ind(20,9);
-    Individual ind2(20,9);
+    Individual ind(100,9,p);
+    Individual ind2(100,9,p);
     ind.initialize_heuristic(123);
+    cout<<"Costo 1: "<<ind.getCost();
     ind2.initialize_heuristic(234);
     ind.print();
     ind.swap_values_by_pos(2,10);
@@ -36,5 +37,7 @@ int main(int argc, char* argv[])
     ind.crossover(ind2);
     ind.print();
     ind2.print();
+    cout<<"Costo 2: "<<ind.getCost();
+    ind.container.show();
     return 0;      
 }

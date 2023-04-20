@@ -1,4 +1,5 @@
 #include "Individual.h"
+#include "Problem.h"
 //Reservar memoria para la codificacion
 
 #define TFitness long long 
@@ -53,19 +54,23 @@ Container::Container(int nodes)
     this->n=nodes;
     vheap.resize(nodes);
 }
-Container::Container(set<int> s, Problem G)
+Container::Container()
+{
+    this->n=0;
+}
+Container::Container(unordered_set<int> s, Problem G)
 {
     this->n=G.nodes;
     vheap.resize(G.nodes);
-    for(set<int>::iterator it=s.begin();it!=s.end();it++)
+    for(unordered_set<int>::iterator it=s.begin();it!=s.end();it++)
     {
       this->InsertOnly(*it,G);
     }
 }
-void Container::reset(set<int> s, Problem G)
+void Container::reset(unordered_set<int> s, Problem G)
 {
     this->clear();
-    for(set<int>::iterator it=s.begin();it!=s.end();it++)
+    for(unordered_set<int>::iterator it=s.begin();it!=s.end();it++)
     {
       this->InsertOnly(*it,G);
     }
@@ -112,13 +117,14 @@ int Container::GetLoss()
 
 
 /// Parte del contenedor adaptado para el nuevo problema
-Individual::Individual(const int &nodes, const int &p)
+Individual::Individual(const int &nodes, const int &p,Problem &G)
 {
     /*Debemos de siempre mantener los índices ordenados por lo que debemos de usar
     una estructura de conjuntos antes que una estructura de vector, el set nos permite encontrar
     ,borrar y modificar las cosas en tiempo logarítmico*/
     this->nodes=nodes;
     this->p=p;
+    this->problem=G;
 }
 
 void Individual::initialize_heuristic(unsigned int seed)
@@ -126,9 +132,9 @@ void Individual::initialize_heuristic(unsigned int seed)
     vector<int> numbers(nodes);
     for (int i=0;i<nodes;i++) numbers[i]=i;
     shuffle(numbers.begin(), numbers.end(), default_random_engine(seed)); //Inicialización de una solución aleatoria
-    this->used=set<int>(numbers.begin(),numbers.begin()+p);
-    this->notused=set<int>(numbers.begin()+p,numbers.end());
-	this->container=new Container(&used,&problem); //Inicializamos al individuo
+    this->used=unordered_set<int>(numbers.begin(),numbers.begin()+p);
+    this->notused=unordered_set<int>(numbers.begin()+p,numbers.end());
+	this->container=Container(used,problem); //Inicializamos al individuo
 }
 
 bool Individual::check()
@@ -148,15 +154,16 @@ void Individual::swap_values_by_pos(int pos_used, int pos_notused)
     notused.erase(to_insert);
     used.insert(to_insert);
     if (!check()){cout<<"fail";}
+    this->update();
 }
 
 void Individual::print()
 {
     cout<<"Used"<<endl;
-    for (set<int>::iterator it=used.begin();it!=used.end();++it) cout<<*it<<" ";
+    for (unordered_set<int>::iterator it=used.begin();it!=used.end();++it) cout<<*it<<" ";
     cout<<endl;
     cout<<"Not Used"<<endl;
-    for (set<int>::iterator it=notused.begin();it!=notused.end();++it) cout<<*it<<" ";
+    for (unordered_set<int>::iterator it=notused.begin();it!=notused.end();++it) cout<<*it<<" ";
     cout<<endl;
 }
 
@@ -166,7 +173,7 @@ TDistance Individual::getDistance(Individual &ind)
     Calculamos el numero de elementos diferentes entre los dos conjuntos y es nuestra distancia
     */
     // Para esto es necesario calcular A NOT B Intersect B NOT A
-    set<int> difference;
+    unordered_set<int> difference;
     set_difference(used.begin(),used.end(),ind.used.begin(),ind.used.end(),inserter(difference,difference.end()));
     return difference.size();
 }
@@ -177,8 +184,8 @@ void Individual::crossover(Individual &ind)
     si cruzamos elementos repetidos en los dos conjuntos habremos modificado el numero de elementos en cada
     uno de las soluciones*/
     //Calculamos A NOT B
-    set<int> candidates1;
-    for (set<int>::iterator it=used.begin();it!=used.end();++it)
+    unordered_set<int> candidates1;
+    for (unordered_set<int>::iterator it=used.begin();it!=used.end();++it)
     {
         if(ind.used.find(*it)==ind.used.end())
         {
@@ -186,8 +193,8 @@ void Individual::crossover(Individual &ind)
         }
     }
     //Calculamos B NOT A
-    set<int> candidates2;
-    for(set<int>::iterator it=ind.used.begin();it!=ind.used.end();++it)
+    unordered_set<int> candidates2;
+    for(unordered_set<int>::iterator it=ind.used.begin();it!=ind.used.end();++it)
     {
         if(used.find(*it)==used.end())
         {
@@ -215,9 +222,16 @@ void Individual::crossover(Individual &ind)
         }
     }
     cout<<(ind.check() && check())<<endl;
+    this->update();
+    ind.update();
 }
 
 void Individual::update()
 {
-	container.reset(this,problem);
+	container.reset(this->used,problem);
+}
+
+TFitness Individual::getCost()
+{
+    return (TFitness) this->container.GetLoss();
 }

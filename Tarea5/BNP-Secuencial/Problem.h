@@ -30,6 +30,7 @@ class Problem
     public:
     	int p,nodes;
 		vector<vector<int> > MC;
+		Problem();
 		Problem(string file);
 		~Problem();
 		vector<int> getCost(int source);

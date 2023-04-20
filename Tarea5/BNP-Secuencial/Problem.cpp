@@ -6,6 +6,7 @@
 #include "Problem.h"
 
 //Load instances and calculate structures to fast access to information
+Problem::Problem(){}
 Problem::Problem(string file)
 {
     ifstream f(file);
