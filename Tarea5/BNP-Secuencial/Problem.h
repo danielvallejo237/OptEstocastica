@@ -15,6 +15,7 @@
 #include <queue>
 #include <ctime>
 #include <unordered_set>
+#include <set>
 
 #define INF 0x3f3f3f3f
 
@@ -30,9 +31,10 @@ class Problem
     	int p,nodes;
 		vector<vector<int> > MC;
 		Problem(string file);
+		~Problem();
 		vector<int> getCost(int source);
 		void getDistMat(vector<vector<int> > &distances);
-		int CostSD(int source, int dest)
+		int CostSD(int source, int dest);
 };
 
 #endif

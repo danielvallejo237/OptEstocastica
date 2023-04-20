@@ -28,7 +28,7 @@ Problem::Problem(string file)
     for(int i=0;i<nodes;i++) MC[i].resize(nodes);
     getDistMat(MC);
 }
-
+Problem::~Problem(){}
 vector<int> Problem::getCost(int source)
 {
     //Vamos a aplicar el algoritmo de dijkstra para la evaluación de las instancias
