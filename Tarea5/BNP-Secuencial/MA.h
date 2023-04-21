@@ -2,11 +2,13 @@
 #define __MA_H__
 
 #include "Individual.h"
+#include "Problem.h"
+#include "utils.h"
 
 class MA {
 	public:
 		MA(int N_, double pc_, double pm_, double finalTime_, string &outputFile);
-		void run();
+		void run(unsigned int seed,int &n, int &p, Problem problem);
 	private:
 		//Parameters of MA
 		int N;//Population Size
@@ -16,10 +18,10 @@ class MA {
 		string outputFile;
 
 		//Basic procedures of MA
-		void initPopulation();
+		void initPopulation(unsigned int seed,int &n, int &p, Problem problem);
 		void initDI();
 		void selectParents();
-		void crossover();
+		void crossover(int &n, int &p, Problem problem);
 		void mutation();
 		void intensify();
 		void replacement();

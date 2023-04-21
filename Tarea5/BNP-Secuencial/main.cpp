@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <bits/stdc++.h>
 
-Problem *Individual::problem;
+//Problem *Individual::problem;
 int main(int argc, char **argv){
 	if ((argc - 1) % 3 != 0){ cout << "Error en parametros" << endl; exit(0); }
 	map<string, string> values;
@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 	srand(seed);
 	MA ma(N, pc, pm, finalTime, outputFile);
 	Problem p(fileName);
-	Individual::problem = &p;
+	//Individual::problem = &p;
 	cout << "Run" << endl << flush;
-	ma.run();
+	ma.run(seed,p.nodes,p.p,p);
 }

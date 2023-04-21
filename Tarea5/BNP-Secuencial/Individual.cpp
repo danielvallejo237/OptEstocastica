@@ -10,6 +10,18 @@
 using namespace std;
 
 typedef pair<int,int> iPair;
+pair<int,int> gen_random_descriptor(const int &n,const int &p)
+{
+    int inp=random() % p;
+    int pos=random() % (n-p);
+    return make_pair(inp,pos);
+}
+
+int get_element_by_index(unordered_set<int> &s,int index)
+{
+    auto it=next(s.begin(),index); //Sacamos un elemento del conjunto no ordenado
+    return *it; 
+}
 
 bool Uheap::remove(const int &idx)
 {
@@ -54,10 +66,7 @@ Container::Container(int nodes)
     this->n=nodes;
     vheap.resize(nodes);
 }
-Container::Container()
-{
-    this->n=0;
-}
+Container::Container(){}
 Container::Container(unordered_set<int> s, Problem G)
 {
     this->n=G.nodes;
@@ -117,6 +126,11 @@ int Container::GetLoss()
 
 
 /// Parte del contenedor adaptado para el nuevo problema
+
+/*
+Definimos a la clase individuo que es la clase que corresponde a cada indivivuo de la población
+Cada individuo debe de tener la clase de intensificación y de obtención de su función de costo.
+*/
 Individual::Individual(const int &nodes, const int &p,Problem &G)
 {
     /*Debemos de siempre mantener los índices ordenados por lo que debemos de usar
@@ -125,16 +139,17 @@ Individual::Individual(const int &nodes, const int &p,Problem &G)
     this->nodes=nodes;
     this->p=p;
     this->problem=G;
+    this->distance=MAX_DISTANCE;
 }
 
 void Individual::initialize_heuristic(unsigned int seed)
 {
     vector<int> numbers(nodes);
-    for (int i=0;i<nodes;i++) numbers[i]=i;
+    for (int i=1;i<=nodes;i++) numbers[i-1]=i;
     shuffle(numbers.begin(), numbers.end(), default_random_engine(seed)); //Inicialización de una solución aleatoria
     this->used=unordered_set<int>(numbers.begin(),numbers.begin()+p);
     this->notused=unordered_set<int>(numbers.begin()+p,numbers.end());
-	this->container=Container(used,problem); //Inicializamos al individuo
+	this->container=Container(used,problem); //Inicializamos al con su respectivo contenedor para poder calcular la pérdida
 }
 
 bool Individual::check()
@@ -157,14 +172,25 @@ void Individual::swap_values_by_pos(int pos_used, int pos_notused)
     this->update();
 }
 
-void Individual::print()
+void Individual::print(const string &fileName)
 {
-    cout<<"Used"<<endl;
+    /*
+    Lo que se va a imprimir en el fichero o en el archivo de texto es la solución como tal al problema así como 
+    el costo de dicha solución que será reportado en las tablas del final
+    */
+    ofstream fich(fileName);
+    for (unordered_set<int>::iterator it=used.begin();it!=used.end();++it) fich<<*it<<" ";
+    fich<<endl;
+    fich<<getCost()<<endl;
+    fich.close();
+}
+
+void Individual::print_to_console()
+{
+    cout<<"Solucion: "<<endl;
     for (unordered_set<int>::iterator it=used.begin();it!=used.end();++it) cout<<*it<<" ";
     cout<<endl;
-    cout<<"Not Used"<<endl;
-    for (unordered_set<int>::iterator it=notused.begin();it!=notused.end();++it) cout<<*it<<" ";
-    cout<<endl;
+    cout<<getCost()<<endl;
 }
 
 TDistance Individual::getDistance(Individual &ind)
@@ -234,4 +260,63 @@ void Individual::update()
 TFitness Individual::getCost()
 {
     return (TFitness) this->container.GetLoss();
+}
+
+void Individual::intensify()
+{
+    /*
+    Para la parte del algoritmo memético vamos a regresar usar el algoritmo de recocido simulado
+    para poder encontrar mejores soluciones a las que ya se tienen. 
+
+    */
+    float temperature=1.25;
+    float delayInSeconds=1;
+    float decreaseRate=0.9;
+    int RepCounter=3000;
+    int tChange=0;
+   //Se dice que el algoritmo deberá de ser corrido por 20 minutos
+    time_t startTime;
+    time_t now;
+    float elapsedTime=0;
+    float setTime = delayInSeconds;
+    time(&startTime);
+    srand(time(NULL)); //Inicialización de forma aleatoria conforme al tiempo máquina 
+    pair<int,int> auxdes; //
+    float indicator;
+    int aux_cost,delta;
+    TFitness current_cost=getCost(); //Sacamos el costo actual de la función de pérdida
+    while (elapsedTime< setTime)
+    {
+        //El proceso de intensificación no debe de durar más de un segundo
+        for (int i=0;i<RepCounter;i++)
+        {
+            auxdes=gen_random_descriptor(nodes,p);
+            container.RemoveAndInsert(get_element_by_index(used,auxdes.first),get_element_by_index(notused,auxdes.second),problem);
+            aux_cost=container.GetLoss();
+            delta=aux_cost-current_cost;
+            if(delta < 0)
+            {
+                swap_values_by_pos(auxdes.first,auxdes.second);
+                update();
+                current_cost=getCost(); //Ya hemos actualizado el costo a la nueva solución
+                break;
+            }
+            else if(delta >= 0 && temperature >0)
+            {
+                indicator= (float) rand() / RAND_MAX; //Generamos un aleatorio entre 0 y 1
+                if(indicator < max((float)0.0,exp(-delta/temperature))) 
+                {
+                    swap_values_by_pos(auxdes.first,auxdes.second);
+                    update();
+                    current_cost=getCost(); //Ya hemos actualizado el costo a la nueva solución
+                    break;
+                }
+            }
+            container.RemoveAndInsert(get_element_by_index(notused,auxdes.second),get_element_by_index(used,auxdes.first),problem);
+        }
+        tChange=tChange+1;
+        temperature=max((float)0.0,decreaseRate-((decreaseRate*tChange)/RepCounter));
+        now = time(NULL);
+        elapsedTime = difftime(now, startTime);
+    }
 }

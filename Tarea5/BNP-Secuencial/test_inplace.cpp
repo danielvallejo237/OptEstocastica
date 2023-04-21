@@ -27,17 +27,16 @@ int main(int argc, char* argv[])
     Individual ind(100,9,p);
     Individual ind2(100,9,p);
     ind.initialize_heuristic(123);
-    cout<<"Costo 1: "<<ind.getCost();
+    cout<<"Costo 1: "<<ind.getCost()<<endl;
     ind2.initialize_heuristic(234);
-    ind.print();
     ind.swap_values_by_pos(2,10);
-    ind.print();
-    ind2.print();
     //cout<<ind.getDistance(ind2)<<endl;
     ind.crossover(ind2);
-    ind.print();
-    ind2.print();
-    cout<<"Costo 2: "<<ind.getCost();
-    ind.container.show();
+    cout<<"Elemento en la posición 2: "<<get_element_by_index(ind.used,2)<<endl;
+    cout<<"Costo 2: "<<ind.getCost()<<endl;
+    ind.intensify();
+    cout<<"Costo 3: "<<ind.getCost()<<endl;
+    ind.print_to_console();
+    cout<<"Costo 4: "<<ind.getCost()<<endl;
     return 0;      
 }

@@ -3,7 +3,6 @@
 #include <signal.h>
 
 #include "MA.h"
-#include "utils.h"
 
 using namespace std;
 
@@ -18,10 +17,10 @@ MA::MA(int N_, double pc_, double pm_, double finalTime_, string &outputFile_){
 	initialTime = (double) (currentTime.tv_sec) + (double) (currentTime.tv_usec)/1.0e6;
 }
 
-void MA::initPopulation(){
+void MA::initPopulation(unsigned int seed,int &n, int &p, Problem problem){
 	for (int i = 0; i < N; i++){
-		Individual *ei = new Individual();
-		ei->initialize_heuristic();
+		Individual *ei = new Individual(n,p,problem);
+		ei->initialize_heuristic(seed);
 		ei->intensify();
 		population.push_back(ei);
 	}
@@ -41,9 +40,9 @@ void MA::selectParents(){
 	}
 }
 
-void MA::crossover(){
+void MA::crossover(int &n, int &p, Problem problem){
 	for (int i = 0; i < parents.size(); i++){
-		Individual *ni = new Individual();
+		Individual *ni = new Individual(n,p,problem);
 		*ni = *parents[i];
 		offspring.push_back(ni);
 	}
@@ -54,11 +53,12 @@ void MA::crossover(){
 	}
 }
 
+/*
 void MA::mutation(){
 	for (int i = 0; i < offspring.size(); i++){
 		offspring[i]->mutation(pm);
 	}
-}
+}*/
 
 void MA::intensify(){
 	for (int i = 0; i < offspring.size(); i++){
@@ -148,16 +148,16 @@ void MA::initDI(){
 	DI = meanDistance * 0.5;
 }
 
-void MA::run(){
-	initPopulation();
+void MA::run(unsigned int seed,int &n, int &p, Problem problem){
+	initPopulation(seed,n,p,problem);
 	initDI();
 	generation = 0;
 	double cTime;
 	double bestCost;
 	do {
 		selectParents();
-		crossover();
-		mutation();
+		crossover(n,p,problem);
+		//mutation();
 		intensify();
 		replacement();
 		struct timeval currentTime; 

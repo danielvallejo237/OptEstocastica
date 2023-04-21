@@ -31,6 +31,7 @@ class Container
     int GetLoss();
 };
 
+pair<int,int> gen_random_descriptor(const int &n,const int &p);
 
 class Individual
 {
@@ -44,14 +45,19 @@ class Individual
     void initialize_heuristic(unsigned int seed);
     bool check();
     void swap_values_by_pos(int pos_used, int pos_notused);
-    void print();
+    void print(const string &fileName);
+    void print_to_console();
 	Problem problem;
 	Container container;
 	void update();
     TDistance getDistance(Individual &ind);
     TFitness getCost();
+    TDistance distance;
     void crossover(Individual &ind); //Cruza de los individuos y como dice ahí el resultado de la cruza se guarda en los individuos.
     void intensify(); //La parte del algoritmo memético en donde vamos a encontrar una mejor solución
 };
+
+
+int get_element_by_index(unordered_set<int> &s,int index);
 
 #endif
