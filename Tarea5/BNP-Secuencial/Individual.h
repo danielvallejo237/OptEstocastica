@@ -2,6 +2,7 @@
 #define __INDIVIDUAL_H__
 
 #include "Problem.h"
+#include <climits>
 #define TFitness long long 
 #define TDistance long long 
 #define MAX_DISTANCE LLONG_MAX

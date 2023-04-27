@@ -4,6 +4,7 @@
 #include "Individual.h"
 #include "Problem.h"
 #include "utils.h"
+#include <climits>
 
 double MeanMinDistance(vector<Individual*> population); 
 
