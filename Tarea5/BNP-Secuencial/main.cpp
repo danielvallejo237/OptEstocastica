@@ -1,6 +1,6 @@
 #include "MA.h"
+#include<map>
 #include <unistd.h>
-#include <bits/stdc++.h>
 
 //Problem *Individual::problem;
 int main(int argc, char **argv){
@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 	srand(seed);
 	MA ma(N, pc, pm, finalTime, outputFile);
 	Problem p(fileName);
-	//Individual::problem = &p;
+	cout<<p.p<<" "<<p.edges<<" "<<p.nodes<<endl;
 	cout << "Run" << endl << flush;
 	ma.run(seed,p.nodes,p.p,p);
 }

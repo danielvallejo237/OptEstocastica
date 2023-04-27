@@ -5,6 +5,8 @@
 #include "Problem.h"
 #include "utils.h"
 
+double MeanMinDistance(vector<Individual*> population); 
+
 class MA {
 	public:
 		MA(int N_, double pc_, double pm_, double finalTime_, string &outputFile);

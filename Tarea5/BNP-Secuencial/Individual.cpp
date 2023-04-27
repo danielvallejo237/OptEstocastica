@@ -172,7 +172,7 @@ void Individual::swap_values_by_pos(int pos_used, int pos_notused)
     this->update();
 }
 
-void Individual::print(const string &fileName)
+void Individual::print(const string &fileName, const int &min_mean_dist)
 {
     /*
     Lo que se va a imprimir en el fichero o en el archivo de texto es la solución como tal al problema así como 
@@ -181,7 +181,7 @@ void Individual::print(const string &fileName)
     ofstream fich(fileName);
     for (unordered_set<int>::iterator it=used.begin();it!=used.end();++it) fich<<*it<<" ";
     fich<<endl;
-    fich<<getCost()<<endl;
+    fich<<getCost()<<endl<<min_mean_dist<<endl;
     fich.close();
 }
 
@@ -247,7 +247,7 @@ void Individual::crossover(Individual &ind)
             ind.notused.insert(*it2);
         }
     }
-    cout<<(ind.check() && check())<<endl;
+    //cout<<(ind.check() && check())<<endl;
     this->update();
     ind.update();
 }

@@ -18,7 +18,6 @@
 #include <set>
 #include <fstream>
 #include <unistd.h>
-#include <bits/stdc++.h>
 
 #define INF 0x3f3f3f3f
 
@@ -31,7 +30,7 @@ class Problem
     private:
     	list<iPair> *adj;
     public:
-    	int p,nodes;
+    	int p,nodes,edges;
 		vector<vector<int> > MC;
 		Problem();
 		Problem(string file);

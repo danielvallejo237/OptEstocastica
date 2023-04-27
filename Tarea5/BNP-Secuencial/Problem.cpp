@@ -15,7 +15,6 @@ Problem::Problem(string file)
       cout<<"Archivo no encontrado";
       exit(EXIT_FAILURE); //Salimos si no es posible abrir el archivo que contiene la estructura del grafo
     }
-    int edges;
     f>>nodes>>edges>>p;
     adj=new list<iPair>[nodes];
     for (int i=0;i<edges;i++)

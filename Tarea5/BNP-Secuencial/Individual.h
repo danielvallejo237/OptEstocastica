@@ -45,7 +45,7 @@ class Individual
     void initialize_heuristic(unsigned int seed);
     bool check();
     void swap_values_by_pos(int pos_used, int pos_notused);
-    void print(const string &fileName);
+    void print(const string &fileName, const int&min_mean_dist);
     void print_to_console();
 	Problem problem;
 	Container container;

@@ -6,6 +6,23 @@
 
 using namespace std;
 
+double MeanMinDistance(vector<Individual*> population)
+{
+	vector<int> min_distance(population.size());
+	int min_dist=INF;
+	for (int i=0;i<population.size();i++)
+	{
+		min_distance[i]=population[i]->distance;
+	}
+	int mean_min_distance=0;
+	for (int i=0;i<min_distance.size();i++)
+	{
+		mean_min_distance+=min_distance[i];
+	}
+	mean_min_distance/=(int)min_distance.size();
+	return mean_min_distance;
+}
+
 MA::MA(int N_, double pc_, double pm_, double finalTime_, string &outputFile_){
 	N = N_;
 	pc = pc_;
@@ -158,21 +175,24 @@ void MA::run(unsigned int seed,int &n, int &p, Problem problem){
 		selectParents();
 		crossover(n,p,problem);
 		//mutation();
+		//Comentamos la parte de intensificación para ver si es ahí donde se origina el problema o desde la cruza de los elementos
 		intensify();
 		replacement();
 		struct timeval currentTime; 
 		gettimeofday(&currentTime, NULL);
 		cTime = (double) (currentTime.tv_sec) + (double) (currentTime.tv_usec)/1.0e6;
 		elapsedTime = cTime - initialTime;
+		string name_file=outputFile+"_generation_"+to_string(generation)+".txt";
 		if (generation == 0){
-			population[0]->print(outputFile);
+			population[0]->print(name_file,MeanMinDistance(population));
 			bestCost = population[0]->getCost();
 		} else {
 			if (population[0]->getCost() < bestCost){
-				population[0]->print(outputFile);
+				population[0]->print(name_file,MeanMinDistance(population));
 				bestCost = population[0]->getCost();
 			}
 		}
 		generation++;
-	} while(cTime - initialTime < finalTime);
+	} while(cTime - initialTime < finalTime && generation < 500);
 }
+
