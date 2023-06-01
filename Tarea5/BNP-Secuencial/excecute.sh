@@ -8,19 +8,19 @@ cust_func()
 
 g++ main.cpp MA.cpp Problem.cpp utils.cpp Individual.cpp -std=c++11 
 
-for i in {1..30}
+for i in {1..5}
 do
     cust_func 50 0.95 "pmed1.txt" "bnp_pmed1_run_${i}" &
 done
 
-for i in {1..30}
+for i in {1..5}
 do
     cust_func 50 0.95 "pmed9.txt" "bnp_pmed9_run_${i}" &
 done
 
-for i in {1..30}
+for i in {1..5}
 do
     cust_func 50 0.95 "pmed15.txt" "bnp_pmed15_run_${i}" &
-done
+done 
 
 wait

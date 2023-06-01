@@ -28,7 +28,7 @@ Individual::Individual(vector<int> solucion)
     for(int i=0;i<size;++i)
     {
         solution[i]=solucion[i];
-        this->generadores+=solucion[i];
+        this->generadores+=solution[i];
     } 
 }
 

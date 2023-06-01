@@ -44,27 +44,15 @@ int main(int argc, const char * argv[])
 
 	outFile.close();
 
-	vector<Individual*> population;
-
-	for (int i=0;i<popsize;i++)
+	vector<Individual*> solution=run(5,0.16,0.05,128,100,20); //Para este caso trabajaremos con 20 generadores
+	for(int i=0;i<solution.size();++i) solution[i]->print(10);
+	for(int i=0;i<solution.size();++i)
 	{
-		population.push_back(new Individual (100,20));
+		int *fl=flatten(solution[i]->solution);
+		cout<<evaluator.evaluateGrid(fl)<<endl;
 	}
-
-	vector<vector<double> > IM=MIMAT(population);
-
-	vector<vector<int> > PM=Pop2Matrix(population);
 	
-	vector<pair<pair<int,int>,double> > parejas=MSTEDGES(IM);
-	
-	vector<double> pbs=joint(PM,23,45);
 
-	pair<pair<double,double>,vector<vector<double> > > ks=probabilityTable(parejas,PM);
-
-	Individual *ind=generateIndividual(ks,parejas,0.1,100);
-
-	ind->print(10);
-	cout<<ind->generadores<<endl;
 	/* 
 	 * Use example with integer array
 	 * Uncomment next section to test the use of the functions.

@@ -30,7 +30,6 @@ int main(int argc, char **argv){
 	srand(seed);
 	MA ma(N, pc, pm, finalTime, outputFile);
 	Problem p(fileName);
-	cout<<p.p<<" "<<p.edges<<" "<<p.nodes<<endl;
-	cout << "Run" << endl << flush;
+	cout << "[INFO] Running Code..." << endl << flush;
 	ma.run(seed,p.nodes,p.p,p);
 }

@@ -193,6 +193,6 @@ void MA::run(unsigned int seed,int &n, int &p, Problem problem){
 			}
 		}
 		generation++;
-	} while(cTime - initialTime < finalTime && generation < 500);
+	} while(cTime - initialTime < finalTime && generation < 100);
 }
 

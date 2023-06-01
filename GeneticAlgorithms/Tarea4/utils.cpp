@@ -242,6 +242,7 @@ Individual* generateIndividual(const pair<pair<double,double>,vector<vector<doub
     //Generador de nuevos individuos 
     double rd=genrandom();
     double eg;
+    double tmp1;
     vector<int> ind(size,0);
     if (rd>generador.first.first) ind[MST[0].first.first]=1;
     for(int i=0;i<generador.second.size();i++)
@@ -256,7 +257,9 @@ Individual* generateIndividual(const pair<pair<double,double>,vector<vector<doub
             }
             else
             {
-                ind[MST[i].first.second]= (generador.second[i][2]>generador.second[i][3]) ? 0 : 1; 
+                //This is a deterministic approach, it needs to be changed to a stochastic one
+                tmp1=generador.second[i][2]/(generador.second[i][2]+generador.second[i][3]);
+                ind[MST[i].first.second]= (genrandom() < tmp1) ? 0 : 1; 
             }
         }
         else 
@@ -269,7 +272,9 @@ Individual* generateIndividual(const pair<pair<double,double>,vector<vector<doub
             }
             else
             {
-                ind[MST[i].first.second]= (generador.second[i][0]>generador.second[i][1]) ? 0 : 1; 
+                //Changing the model to a moree stochastic approach
+                tmp1=generador.second[i][0]/(generador.second[i][0]+generador.second[i][1]);
+                ind[MST[i].first.second]= (genrandom() < tmp1) ? 0 : 1; 
             }
         }
     } 
@@ -283,4 +288,61 @@ vector<Individual*> nextPopulation(vector<Individual*> old_population,double eps
     Generación de la siguiente población de individuos en donde calculamos las soluciones 
     más cercanas a la cantidad de generadores que queremos encontrar
     */
+    vector<vector<double> > IM=MIMAT(old_population); //Matriz de información mutua
+    vector<vector<int> > PM=Pop2Matrix(old_population); //Convert a matriz to a next population
+    vector<pair<pair<int,int>,double> > parejas=MSTEDGES(IM); //Minimum spanning tree que corresopnde a la construcción del arbol de Chow Liu
+	pair<pair<double,double>,vector<vector<double> > > ks=probabilityTable(parejas,PM); //Tabla de probabilidades para la generación de los infividuos
+
+    vector<Individual*> new_pop(popsize);
+    for (int i=0;i<new_pop.size();i++)
+    {
+        new_pop[i]=generateIndividual(ks,parejas,epsilon,size);
+    }
+    return new_pop; //Regresamos la nueva población 
+}
+
+vector<Individual*> selectKbest(vector<Individual*> poblacion, int expected_gen, int new_pop_size)
+{
+    vector<pair<int,int> > cercania;
+    int i=0;
+    for (vector<Individual*>::iterator it=poblacion.begin();it!=poblacion.end();++it)
+    {
+        cercania.push_back(make_pair(abs(expected_gen-(*it)->generadores),i));
+        //Tomamos los elementos que estén más cercanos al número de generadores esperados, en este caso son 20
+        i++;
+    }
+    sort(cercania.begin(),cercania.end());
+    vector<Individual*> selected(new_pop_size);
+    for (int j=0;j<new_pop_size;j++)
+    {
+        selected[j]=poblacion[cercania[j].second];
+    }
+    return selected;
+}
+
+double decay_epsilon(double epsilon_init, double epsilon_end,int step,int gen)
+{
+    return epsilon_init-(double) step *(epsilon_init-epsilon_end)/(double)gen;
+}
+
+
+vector<Individual*> run(int generations, double epsiloninit, double epsilon_end, int popsize, int size, int expected_gen)
+{
+    vector<Individual*> population;
+	for (int i=0;i<popsize;i++) population.push_back(new Individual (size,expected_gen));
+    for(int i=0;i<generations;i++)
+    {
+        //Agarramos a los mejores de la población
+        vector<Individual*> best=selectKbest(population,expected_gen,popsize);
+        vector<Individual*> population=nextPopulation(best,decay_epsilon(epsiloninit,epsilon_end,i,generations),5*popsize,size);
+    }
+    population=selectKbest(population,expected_gen,popsize);
+    return population; //Regresa la población con los que se supone son los mejores elementos encontrados por el algoritmo
+}
+
+int* flatten(const vector<int> &v)
+{
+    int *aplanado=new int [v.size()];
+    for (int i=0;i<v.size();i++) aplanado[i]=v[i];
+    return aplanado;
 }
