@@ -205,7 +205,7 @@ bool KusiakLayoutEvaluator::checkConstraint() {
 	  tpositions->get(i, 0) < scenario.obstacles.get(j, 2) &&
 	  tpositions->get(i, 1) > scenario.obstacles.get(j, 1) &&
 	  tpositions->get(i, 1) < scenario.obstacles.get(j, 3)) {
-	printf("Obstacle %d [%f, %f, %f, %f] violated by turbine %d (%lf, %lf)\n", 
+	printf("Obstacle %d [%f, %f, %f, %f] violated by turbine %d (%f, %f)\n", 
 	       j, scenario.obstacles.get(j, 0), scenario.obstacles.get(j, 1),
 	       scenario.obstacles.get(j, 2), scenario.obstacles.get(j, 3), i);
 	return false;

@@ -1,7 +1,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
-
+#include <fstream>
+#include <cmath>
 using namespace std;
 
 class Individual
@@ -12,6 +13,8 @@ class Individual
         vector<int> solution;
         Individual(int size,int generadores);
         Individual(vector<int> solucion);
+        Individual(Individual *ind);
         ~Individual();
         void print(int rows);
+        void toString();
 };

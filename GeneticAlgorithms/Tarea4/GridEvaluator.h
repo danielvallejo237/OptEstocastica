@@ -24,7 +24,7 @@ class GridEvaluator {
 
 	public:	
 
-	Matrix <double>  * Positions;
+	Matrix <double>  Positions;
 	GridEvaluator();
 	~GridEvaluator();
 	GridEvaluator(KusiakLayoutEvaluator * simulator_, WindScenario * scenario_,
@@ -32,7 +32,7 @@ class GridEvaluator {
 	
 
 	void readGrid(string & fileName);
-	double evaluateGrid( int * grid);
+	double evaluateGrid( int * grid, int n);
 	double evaluateGrid();
 	double inline getEnergyCost() {return energyCost;}
 	double inline getWakeFreeRatio() {return WakeFreeRatio;}

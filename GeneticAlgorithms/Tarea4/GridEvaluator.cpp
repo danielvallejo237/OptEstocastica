@@ -18,7 +18,6 @@ GridEvaluator::GridEvaluator(KusiakLayoutEvaluator * simulator_, WindScenario * 
 }
 GridEvaluator::~GridEvaluator()
 {
-	if(Positions) delete Positions;
 }
 
 // Read Grid from file
@@ -44,8 +43,8 @@ void GridEvaluator::readGrid( string & filename)
 
 		double squareWidth = TerrainWidth / gridWidth;
 		double squareHeight = TerrainWidth / gridHeight;
-		//delete Positions;
-		Positions = new Matrix<double>(n, 2);
+
+		Positions = Matrix<double>(n, 2);
 
 		if(n > gridWidth*gridHeight){ 
 			cerr << "Number of turbines bigger than grid spaces."<<endl;
@@ -66,8 +65,8 @@ void GridEvaluator::readGrid( string & filename)
 					counter++;
 					double x = j*squareWidth + (double) squareWidth / 2.0; // Calculate turbine position
 					double y = i*squareHeight + (double) squareHeight / 2.0;
-					Positions->set(counter-1, 0, x);
-					Positions->set(counter-1, 1, y);
+					Positions.set(counter-1, 0, x);
+					Positions.set(counter-1, 1, y);
 
 				}
 			}
@@ -86,13 +85,12 @@ void GridEvaluator::readGrid( string & filename)
 // If the number of turbines excedes the number established by the instance
 // the solution is not valid.
 //
-double GridEvaluator::evaluateGrid(int * grid)
+double GridEvaluator::evaluateGrid(int * grid,int n)
 {
 	double squareWidth = TerrainWidth / gridWidth;
 	double squareHeight = TerrainHeight / gridHeight;
-
-	delete Positions;
-	Positions = new Matrix<double> (N, 2);
+	//if(Positions) delete Positions;
+	Positions = Matrix<double> (n, 2);
 	int counter = 0;
 
 
@@ -103,8 +101,8 @@ double GridEvaluator::evaluateGrid(int * grid)
 				if(counter > N) break;
 				double x = j*squareWidth + squareWidth / 2.0; // Calculate turbine position
 				double y = i*squareHeight + squareHeight / 2.0;
-				Positions->set(counter-1, 0, x);
-				Positions->set(counter-1, 1, y);
+				Positions.set(counter-1, 0, x);
+				Positions.set(counter-1, 1, y);
 			}
 			if(counter > N) break;
 		}
@@ -121,13 +119,12 @@ double GridEvaluator::evaluateGrid(int * grid)
 
 double GridEvaluator::evaluateGrid()
 {
-	simulator -> evaluate(Positions);
+	simulator -> evaluate(&Positions);
 
 	WakeFreeRatio =  simulator -> getWakeFreeRatio();
 	if(WakeFreeRatio == 0) energyCost = std::numeric_limits<double>::max();
 	else energyCost =  simulator -> getEnergyCost();
-
 	energyCapture = simulator -> getEnergyOutput();
-	return energyCost;
+	return WakeFreeRatio;
 
 }

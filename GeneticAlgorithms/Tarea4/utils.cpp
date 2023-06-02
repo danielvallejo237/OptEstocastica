@@ -297,17 +297,28 @@ vector<Individual*> nextPopulation(vector<Individual*> old_population,double eps
     for (int i=0;i<new_pop.size();i++)
     {
         new_pop[i]=generateIndividual(ks,parejas,epsilon,size);
+        //cout<<"Generadores est "<<new_pop[i]->generadores<<endl;
     }
     return new_pop; //Regresamos la nueva población 
 }
 
-vector<Individual*> selectKbest(vector<Individual*> poblacion, int expected_gen, int new_pop_size)
+bool isValid(Individual *ind, int expected_gen)
 {
-    vector<pair<int,int> > cercania;
+    int suma=0;
+    for(int i=0;i<ind->solution.size();i++) suma+=ind->solution[i];
+    return (suma > expected_gen) ? false : true;
+}
+
+vector<Individual*> selectKbest(vector<Individual*> poblacion, int expected_gen, int new_pop_size,GridEvaluator evaluador)
+{
+    vector<pair<int,int> > cercania(poblacion.size());
     int i=0;
     for (vector<Individual*>::iterator it=poblacion.begin();it!=poblacion.end();++it)
     {
-        cercania.push_back(make_pair(abs(expected_gen-(*it)->generadores),i));
+        int *fl=flatten((*it)->solution);
+        int suma=0;
+        for(int i=0;i<(*it)->solution.size();i++) suma+=(*it)->solution[i];
+        cercania[i]=make_pair(0.4*evaluador.evaluateGrid(fl,suma)+0.6*((double)abs(expected_gen-suma)/(double)expected_gen),i);
         //Tomamos los elementos que estén más cercanos al número de generadores esperados, en este caso son 20
         i++;
     }
@@ -315,7 +326,11 @@ vector<Individual*> selectKbest(vector<Individual*> poblacion, int expected_gen,
     vector<Individual*> selected(new_pop_size);
     for (int j=0;j<new_pop_size;j++)
     {
-        selected[j]=poblacion[cercania[j].second];
+        if (isValid(poblacion[cercania[j].second],expected_gen)) selected[j]=new Individual(poblacion[cercania[j].second]);
+        else selected[j]=new Individual(poblacion[cercania[j].second]->size,expected_gen);
+        int suma=0;
+        for(int i=0;i<selected[j]->solution.size();i++) suma+=selected[j]->solution[i];
+        selected[j]->generadores=suma;
     }
     return selected;
 }
@@ -326,18 +341,19 @@ double decay_epsilon(double epsilon_init, double epsilon_end,int step,int gen)
 }
 
 
-vector<Individual*> run(int generations, double epsiloninit, double epsilon_end, int popsize, int size, int expected_gen)
+vector<Individual*> run(int generations, double epsiloninit, double epsilon_end, int popsize, int size, int expected_gen, GridEvaluator evaluador)
 {
     vector<Individual*> population;
-	for (int i=0;i<popsize;i++) population.push_back(new Individual (size,expected_gen));
+	for (int i=0;i<5*popsize;i++) population.push_back(new Individual (size,expected_gen));
     for(int i=0;i<generations;i++)
     {
         //Agarramos a los mejores de la población
-        vector<Individual*> best=selectKbest(population,expected_gen,popsize);
+        vector<Individual*> best=selectKbest(population,expected_gen,popsize,evaluador);
         vector<Individual*> population=nextPopulation(best,decay_epsilon(epsiloninit,epsilon_end,i,generations),5*popsize,size);
     }
-    population=selectKbest(population,expected_gen,popsize);
-    return population; //Regresa la población con los que se supone son los mejores elementos encontrados por el algoritmo
+    vector<Individual*> np=selectKbest(population,expected_gen,popsize,evaluador);
+    //for(vector<Individual*>::iterator it=np.begin();it!=np.end();++it) cout<<(*it)->generadores<<endl;
+    return np; //Regresa la población con los que se supone son los mejores elementos encontrados por el algoritmo
 }
 
 int* flatten(const vector<int> &v)
